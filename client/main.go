@@ -2,33 +2,24 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
-	"github.com/jessevdk/go-flags"
-	"github.com/taichi-hagiwara/go-chat-demo/service"
+	"github.com/taichi-hagiwara/ezrpc"
+	"github.com/taichi-hagiwara/go-chat-demo-v2/service"
 )
 
 func main() {
-	_, err := flags.Parse(&opts)
-	if err != nil {
-		if h, ok := err.(*flags.Error); !ok || h.Type != flags.ErrHelp {
-			panic(err)
-		}
-	}
+	client, err := ezrpc.NewClient(service.ChatService(), "localhost:8080", "Server", &ezrpc.CertInfo{
+		CACert:  "ca.pem",
+		Cert:    "cert.pem",
+		Private: "private.pem",
+	})
 
-	s, err := json.MarshalIndent(opts, "", "  ")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	fmt.Println(string(s))
-
-	client, err := service.Dial(opts.Args.Server, opts.Nickname)
-	if err != nil {
-		panic(err)
-	}
-	defer client.Close()
 
 	stdin := bufio.NewScanner(os.Stdin)
 
@@ -37,13 +28,13 @@ func main() {
 			break
 		}
 
-		err := client.Post(&service.PostArgs{
-			UserID: client.UserID(),
-			Text:   stdin.Text(),
-		}, &struct{}{})
-
+		r, err := client.Invoke("post", &service.PostArgs{Text: stdin.Text()})
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
+		}
+		result := r.(*service.PostResult)
+		for i := range result.Log {
+			fmt.Printf("%s <%s> %s\n", result.Log[i].Time, result.Log[i].Name, result.Log[i].Text)
 		}
 
 	}
