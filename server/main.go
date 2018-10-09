@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/taichi-hagiwara/go-chat-demo-v2/service"
+	"github.com/taichi-hagiwara/go-chat-demo/service"
 
 	"github.com/taichi-hagiwara/ezrpc"
 )
@@ -33,7 +33,7 @@ func (s *chatServer) Invoke(name string, client *ezrpc.ClientInfo, args interfac
 	if name == "post" {
 		args := args.(*service.PostArgs)
 		post := &service.Post{Text: args.Text, Name: client.TLSSubject.CommonName, Time: time.Now()}
-		fmt.Printf("%s <%s> %s\n", post.Time, post.Name, post.Text)
+		fmt.Printf("%s %s <%s> %s\n", client.Remote, post.Time, post.Name, post.Text)
 
 		if _, ok := s.Log[client.TLSSubject.CommonName]; !ok {
 			s.Log[client.TLSSubject.CommonName] = []*service.Post{}

@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/taichi-hagiwara/ezrpc"
-	"github.com/taichi-hagiwara/go-chat-demo-v2/service"
+	"github.com/taichi-hagiwara/go-chat-demo/service"
 )
 
 func main() {
